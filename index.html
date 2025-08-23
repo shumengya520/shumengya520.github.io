@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>树萌芽の个人主页 — 终端风</title>
+  <meta name="description" content="树萌芽 の 个人主页 — 用类 Linux 命令行终端输出展示，炫酷极客风，移动端/桌面端自适应。" />
+  <style>
+    :root{
+      --bg:#071021;
+      --terminal:#031018;
+      --panel:#071827;
+      --accent1:#00E5FF; /* cyan */
+      --accent2:#FF4DFF; /* magenta */
+      --accent3:#7CFF00; /* lime */
+      --muted:#8aa1b1;
+      --glass: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(0,250,255,0.03), transparent),
+                  radial-gradient(1000px 500px at 90% 90%, rgba(255,77,255,0.03), transparent),
+                  var(--bg);
+      color:var(--muted);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+    }
+
+    /* Terminal container */
+    .terminal-wrap{
+      width:min(960px, 96%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      padding:14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 120px rgba(0,229,255,0.03) inset;
+      border: 1px solid rgba(255,255,255,0.03);
+      backdrop-filter: blur(6px) saturate(120%);
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .dots{display:flex;gap:8px}
+    .dot{width:12px;height:12px;border-radius:50%;box-shadow:0 0 12px rgba(0,0,0,0.6)}
+    .d-red{background:linear-gradient(180deg,#ff7a7a,#ff4d4d);box-shadow:0 0 12px rgba(255,77,77,0.25)}
+    .d-yellow{background:linear-gradient(180deg,#ffd27a,#ffbf4d);box-shadow:0 0 12px rgba(255,191,77,0.12)}
+    .d-green{background:linear-gradient(180deg,#7aff97,#4dff6b);box-shadow:0 0 12px rgba(124,255,107,0.18)}
+
+    .title{
+      margin-left:auto;
+      color:var(--muted);
+      font-size:13px;
+      letter-spacing:0.6px;
+    }
+
+    .terminal{
+      background:linear-gradient(180deg,var(--terminal), rgba(2,12,20,0.6));
+      border-radius:10px;
+      padding:18px;
+      min-height:360px;
+      max-height:72vh;
+      overflow:auto;
+      box-shadow:0 0 80px rgba(0,0,0,0.6) inset;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .line{display:flex;gap:8px;align-items:flex-start;white-space:pre-wrap;word-break:break-word}
+    .prompt{min-width:90px}
+    .prompt .host{color:var(--accent2);text-shadow:0 0 8px rgba(255,77,255,0.12)}
+    .prompt .sep{color:var(--muted)}
+    .prompt .path{color:var(--accent1);text-shadow:0 0 12px rgba(0,229,255,0.06)}
+
+    .cmd{color:#e6f9ff; font-weight:600}
+    .result{color:var(--muted);}
+
+    /* neon highlights for keywords */
+    .hl1{color:var(--accent1); text-shadow:0 0 18px rgba(0,229,255,0.14)}
+    .hl2{color:var(--accent2); text-shadow:0 0 18px rgba(255,77,255,0.12)}
+    .hl3{color:var(--accent3); text-shadow:0 0 18px rgba(124,255,0,0.12)}
+
+    /* typing caret */
+    .caret{display:inline-block;width:10px;height:1.2em;background:linear-gradient(90deg,var(--accent1),var(--accent2));margin-left:4px;opacity:1;animation:blink 1s steps(2) infinite}
+    @keyframes blink{50%{opacity:0}}
+
+    /* responsive font sizing */
+    .terminal{font-size:clamp(12px, 1.6vw, 16px)}
+    .prompt{font-size:clamp(12px,1.5vw,14px)}
+
+    /* footer small hint */
+    .hint{margin-top:12px;font-size:12px;color:rgba(170,190,210,0.6)}
+
+    /* mobile tweaks */
+    @media (max-width:520px){
+      .prompt{min-width:72px}
+      .terminal{padding:12px}
+    }
+
+    /* subtle CRT scanlines */
+    .terminal:after{
+      content:"";
+      position:relative;
+      pointer-events:none;
+      display:block;
+      height:0; /* purely decorative via background */
+      background-image:linear-gradient(rgba(255,255,255,0.002) 1px, transparent 1px);
+      background-size:100% 4px;
+      margin-top:-360px;
+      mix-blend-mode:overlay;
+      opacity:0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal-wrap" role="main">
+    <div class="topbar">
+      <div class="dots">
+        <div class="dot d-red" aria-hidden></div>
+        <div class="dot d-yellow" aria-hidden></div>
+        <div class="dot d-green" aria-hidden></div>
+      </div>
+      <div class="title">树萌芽の 个人主页 · 终端输出风</div>
+    </div>
+    <div class="terminal" id="terminal" aria-live="polite">
+      <!-- lines are rendered by JS -->
+    </div>
+    <div class="hint">提示：页面以命令输出模拟终端，支持触控/点击快速跳过打字效果。适配手机与桌面。</div>
+  </div>
+
+  <script>
+    // 内容：把你的信息放在这里修改即可
+    const LINES = [
+      {prompt:{host:'萌芽',path:'~'}, cmd:'whoami', result:['姓名: 树萌芽']},
+      {prompt:{host:'萌芽',path:'~'}, cmd:'skills', result:['技能: Python · Java · Linux · C++ · Web']},
+      {prompt:{host:'萌芽',path:'~'}, cmd:'projects', result:['项目: 个人博客、游戏工具、自动化脚本']},
+      {prompt:{host:'萌芽',path:'~'}, cmd:'contact', result:['邮箱: example@domain.com','GitHub: github.com/yourname']},
+      {prompt:{host:'萌芽',path:'~'}, cmd:'echo "欢迎来到我的主页 :)"', result:['\n欢迎 — 你现在正在浏览一个以类 Linux 终端风格展示的个人主页。']},
+      {prompt:{host:'萌芽',path:'~'}, cmd:'help', result:['可用命令: whoami, skills, projects, contact, resume, clear']}
+    ];
+
+    const terminal = document.getElementById('terminal');
+    let lineIndex = 0;
+    let typing = true;
+
+    // helper to create DOM nodes for a line
+    function renderLine(item, withCaret = false){
+      const line = document.createElement('div');
+      line.className = 'line';
+
+      const prompt = document.createElement('div');
+      prompt.className = 'prompt';
+      prompt.innerHTML = `<span class="host">${escapeHtml(item.prompt.host)}</span><span class="sep">@</span><span class="path">${escapeHtml(item.prompt.path)}</span><span class="sep">$</span>`;
+      line.appendChild(prompt);
+
+      const content = document.createElement('div');
+      content.className = 'content';
+
+      const cmd = document.createElement('span');
+      cmd.className = 'cmd';
+      cmd.textContent = item.cmd;
+      content.appendChild(cmd);
+
+      if(withCaret){
+        const caret = document.createElement('span');
+        caret.className = 'caret';
+        content.appendChild(caret);
+      }
+
+      line.appendChild(content);
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+      return {line, prompt, content};
+    }
+
+    function renderResult(text){
+      const row = document.createElement('div');
+      row.className = 'line result';
+      row.style.marginLeft = '98px';
+      row.innerHTML = `<div class="result">${escapeHtml(text).replace(/\n/g,'<br/>')}</div>`;
+      terminal.appendChild(row);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function typeLine(item, done){
+      const nodes = renderLine(item, true);
+      const caret = nodes.content.querySelector('.caret');
+      const target = nodes.content.querySelector('.cmd');
+      const text = item.cmd;
+      let i = 0;
+      const speed = 18 + Math.random()*18; // variable speed
+
+      function step(){
+        if(i <= text.length){
+          target.textContent = text.slice(0,i);
+          terminal.scrollTop = terminal.scrollHeight;
+          i++;
+          // allow clicking to skip
+          if(!typing) return finishNow();
+          setTimeout(step, speed);
+        } else {
+          caret.remove();
+          // show results
+          setTimeout(()=>{
+            item.result.forEach((r, idx)=>{
+              // color some keywords
+              const colored = colorize(escapeHtml(r));
+              renderResult(colored);
+            });
+            done();
+          }, 220);
+        }
+      }
+      step();
+
+      function finishNow(){
+        typing = true; // reset
+        target.textContent = text;
+        caret.remove();
+        item.result.forEach((r)=>renderResult(escapeHtml(r)));
+        done();
+      }
+    }
+
+    function runAll(){
+      if(lineIndex >= LINES.length) return renderFooter();
+      const item = LINES[lineIndex++];
+      typeLine(item, ()=>{
+        setTimeout(()=>{ runAll(); }, 400 + Math.random()*400);
+      });
+    }
+
+    // add click/touch to skip typing animation (useful on mobile)
+    document.body.addEventListener('pointerdown', ()=>{
+      // flip a flag so current typing will skip to end
+      typing = false;
+      // restore after short moment so future types animate normally
+      setTimeout(()=>typing = true, 180);
+    });
+
+    function renderFooter(){
+      const f = document.createElement('div');
+      f.className = 'line';
+      f.style.marginTop = '8px';
+      f.innerHTML = `<div style="min-width:90px"></div><div class="result">如果你想要更多信息，点击 <span class='hl1'>编辑</span> 或者联系我。</div>`;
+      terminal.appendChild(f);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>\"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
+    }
+
+    function colorize(text){
+      // 给关键字染色（简单规则）
+      return text
+        .replace(/(Python|Java|C\+\+|Linux|Web|技能|项目)/g, '<span class="hl3">$1</span>')
+        .replace(/(邮箱|GitHub|联系)/g, '<span class="hl2">$1</span>')
+        .replace(/(欢迎|提示|帮助|help)/gi, '<span class="hl1">$1</span>');
+    }
+
+    // 初始化
+    (function(){
+      // small delay to simulate boot
+      setTimeout(runAll, 600);
+    })();
+
+    // expose a small API for quick edits from the console
+    window._profile = {
+      setLines(newLines){
+        if(Array.isArray(newLines)){
+          newLines.forEach(n=>terminal.appendChild(document.createElement('div')));
+        }
+      }
+    };
+  </script>
+</body>
+</html>
